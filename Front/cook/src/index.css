@@ -1,0 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-outfit: Outfit, sans-serif;
+  --gradient-radial: radial-gradient(circle at center, #b8852e, #ffd779);
+  --orange-1: #ff873c;
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
