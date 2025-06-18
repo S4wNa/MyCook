@@ -39,6 +39,3 @@ coverage/
 *.sqlite
 *.db
 
-# Dependency lock (si tu ne veux pas l'inclure — optionnel)
-# package-lock.json
-# yarn.lock

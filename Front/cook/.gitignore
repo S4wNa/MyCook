@@ -34,7 +34,3 @@ Thumbs.db
 .parcel-cache/
 *.cache
 *.tmp
-
-# Dependency lock files (optionnel)
-# package-lock.json
-# yarn.lock
