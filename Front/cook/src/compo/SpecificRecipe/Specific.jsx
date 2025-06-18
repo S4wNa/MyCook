@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { Ingredients } from "../Create/Info";
 
 function Specific() {
   const { id } = useParams();
@@ -9,6 +10,15 @@ function Specific() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showMobileIngredients, setShowMobileIngredients] = useState(false);
+
+  // Fonction pour trouver l'image locale d'un ingrédient
+  const getLocalImage = (ingredientName) => {
+    const allIngredients = Ingredients.flatMap((cat) => cat.ingre);
+    const ingredient = allIngredients.find(
+      (ing) => ing.name.toLowerCase() === ingredientName.toLowerCase()
+    );
+    return ingredient ? ingredient.image : null;
+  };
 
   useEffect(() => {
     console.log("Recipe ID from URL:", id);
@@ -59,24 +69,36 @@ function Specific() {
       <aside className="hidden md:block w-64 lg:w-80 xl:w-96 flex-shrink-0 p-4 overflow-y-auto">
         <h2 className="text-xl font-bold mb-6">Ingredients:</h2>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          {ingredients.map((ingredient, index) => (
-            <div
-              key={index}
-              className="flex items-center p-3 border border-stone-400 rounded-lg hover:shadow-md transition-shadow bg-[#FFF3D8]/50"
-            >
-              <img
-                src={ingredient.ingredientId.imageUrl}
-                className="w-12 h-12 mr-3 object-cover rounded"
-                alt={ingredient.ingredientId.name}
-              />
-              <div className="flex-1">
-                <p className="font-medium">{ingredient.ingredientId.name}</p>
-                <p className="text-sm text-gray-600">
-                  {ingredient.quantity} {ingredient.unit}
-                </p>
+          {ingredients.map((ingredient, index) => {
+            const localImage = getLocalImage(ingredient.ingredientId.name);
+            return (
+              <div
+                key={index}
+                className="flex items-center p-3 border border-stone-400 rounded-lg hover:shadow-md transition-shadow bg-[#FFF3D8]/50"
+              >
+                <img
+                  src={
+                    ingredient.ingredientId.imageUrl ||
+                    localImage ||
+                    "https://via.placeholder.com/200"
+                  }
+                  className="w-12 h-12 mr-3 object-cover rounded"
+                  alt={ingredient.ingredientId.name}
+                  onError={(e) => {
+                    if (localImage) {
+                      e.target.src = localImage;
+                    }
+                  }}
+                />
+                <div className="flex-1">
+                  <p className="font-medium">{ingredient.ingredientId.name}</p>
+                  <p className="text-sm text-gray-600">
+                    {ingredient.quantity} {ingredient.unit}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </aside>
 
@@ -121,26 +143,40 @@ function Specific() {
                           </button>
                         </div>
                         <div className="space-y-3">
-                          {ingredients.map((ingredient, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center p-3 border border-stone-400 rounded-lg bg-[#FFF3D8]/50"
-                            >
-                              <img
-                                src={ingredient.ingredientId.imageUrl}
-                                className="w-10 h-10 mr-3 object-cover rounded"
-                                alt={ingredient.ingredientId.name}
-                              />
-                              <div className="flex-1">
-                                <p className="font-medium">
-                                  {ingredient.ingredientId.name}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  {ingredient.quantity} {ingredient.unit}
-                                </p>
+                          {ingredients.map((ingredient, index) => {
+                            const localImage = getLocalImage(
+                              ingredient.ingredientId.name
+                            );
+                            return (
+                              <div
+                                key={index}
+                                className="flex items-center p-3 border border-stone-400 rounded-lg bg-[#FFF3D8]/50"
+                              >
+                                <img
+                                  src={
+                                    ingredient.ingredientId.imageUrl ||
+                                    localImage ||
+                                    "https://via.placeholder.com/200"
+                                  }
+                                  className="w-10 h-10 mr-3 object-cover rounded"
+                                  alt={ingredient.ingredientId.name}
+                                  onError={(e) => {
+                                    if (localImage) {
+                                      e.target.src = localImage;
+                                    }
+                                  }}
+                                />
+                                <div className="flex-1">
+                                  <p className="font-medium">
+                                    {ingredient.ingredientId.name}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    {ingredient.quantity} {ingredient.unit}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
