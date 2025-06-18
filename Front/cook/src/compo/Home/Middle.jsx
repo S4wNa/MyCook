@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import img8 from "../../assets/images/img8.jpg";
 import img12 from "../../assets/images/img12.jpg";
 import img13 from "../../assets/images/img13.jpeg";
@@ -10,13 +11,20 @@ import img15 from "../../assets/images/img15.avif";
 import img14 from "../../assets/images/img14.avif";
 
 function Middle() {
+  const navigate = useNavigate();
+  function handleGoIngredients() {
+    navigate("/ingredients");
+  }
   return (
     <div className="w-full flex-1 flex flex-col justify-center items-center relative overflow-hidden ">
       <div className="flex flex-col justify-center items-center order-2  mb-50">
         <h1 className="text-white block text-center mx-auto w-80 text-4xl font-bold md:text-6xl md:w-120 z-100 ">
           Be your own cook and share your recipes with the world
         </h1>
-        <button className="rounded-full bg-[#ff873c] text-white mx-auto w-48 h-16 mt-4 cursor-pointer">
+        <button
+          className="rounded-full bg-[#ff873c] text-white mx-auto w-48 h-16 mt-4 cursor-pointer"
+          onClick={handleGoIngredients}
+        >
           Get Started
         </button>
       </div>
