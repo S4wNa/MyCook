@@ -10,7 +10,8 @@ function MyRecipe() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userId, setUserId] = useState(null);
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchRecipes();
@@ -31,7 +32,7 @@ function MyRecipe() {
         throw new Error("Please log in to view your recipes");
       }
 
-      const response = await fetch("/api/recipes/my-recipes", {
+      const response = await fetch(`${API_BASE_URL}/api/recipes/my-recipes`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -42,7 +43,6 @@ function MyRecipe() {
       }
 
       const data = await response.json();
-      console.log("Fetched recipes:", data);
       setRecipes(data);
       setFilteredRecipes(data);
     } catch (error) {
@@ -67,12 +67,15 @@ function MyRecipe() {
     if (window.confirm("Are you sure you want to delete this recipe?")) {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`/api/recipes/${recipeId}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/api/recipes/${recipeId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to delete recipe");

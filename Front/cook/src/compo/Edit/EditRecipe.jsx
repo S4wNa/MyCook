@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { FaImage } from "react-icons/fa";
 import defaultImage from "../../assets/images/img12.jpg";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 function EditRecipe() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,7 +28,7 @@ function EditRecipe() {
 
   const fetchRecipeDetails = async () => {
     try {
-      const response = await fetch(`/api/recipes/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/recipes/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -108,8 +110,7 @@ function EditRecipe() {
       setIsSaving(true);
       setError(null);
 
-      // 1. Mettre à jour les informations de base
-      const recipeResponse = await fetch(`/api/recipes/${id}`, {
+      const recipeResponse = await fetch(`${API_BASE_URL}/api/recipes/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -128,23 +129,25 @@ function EditRecipe() {
         throw new Error("Failed to update recipe");
       }
 
-      // 2. Mettre à jour les étapes
-      const stepsResponse = await fetch(`/api/recipes/${id}/steps`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          steps: steps.map((step) => ({
-            step: step.step,
-            description: step.description,
-            imageUrl: step.image
-              ? URL.createObjectURL(step.image)
-              : step.imageUrl,
-          })),
-        }),
-      });
+      const stepsResponse = await fetch(
+        `${API_BASE_URL}/api/recipes/${id}/steps`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            steps: steps.map((step) => ({
+              step: step.step,
+              description: step.description,
+              imageUrl: step.image
+                ? URL.createObjectURL(step.image)
+                : step.imageUrl,
+            })),
+          }),
+        }
+      );
 
       if (!stepsResponse.ok) {
         throw new Error("Failed to update steps");

@@ -234,6 +234,10 @@ function CreateRecipe2() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
 
+  // URL de base de votre API
+  const API_BASE_URL =
+    import.meta.env.VITE_API_URL || "https://mycook.onrender.com";
+
   useEffect(() => {
     const savedIngredients = localStorage.getItem("selectedIngredients");
     if (savedIngredients) {
@@ -346,7 +350,7 @@ function CreateRecipe2() {
       console.log("Sending recipe data:", recipeDataToSend); // Debug log
 
       // 1. Créer la recette
-      const recipeResponse = await fetch("/api/recipes", {
+      const recipeResponse = await fetch(`${API_BASE_URL}/api/recipes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -370,7 +374,7 @@ function CreateRecipe2() {
 
       // 2. Sauvegarder les ingrédients avec leurs quantités
       const ingredientsResponse = await fetch(
-        `/api/recipes/${recipeId}/ingredients`,
+        `${API_BASE_URL}/api/recipes/${recipeId}/ingredients`,
         {
           method: "POST",
           headers: {
@@ -383,7 +387,7 @@ function CreateRecipe2() {
                 try {
                   // D'abord, chercher si l'ingrédient existe déjà
                   const searchResponse = await fetch(
-                    `/api/ingredients/search?q=${encodeURIComponent(
+                    `${API_BASE_URL}/api/ingredients/search?q=${encodeURIComponent(
                       ingredient.name.trim()
                     )}`,
                     {
@@ -403,31 +407,34 @@ function CreateRecipe2() {
                       ingredientId = existingIngredients[0]._id;
                     } else {
                       // Créer un nouvel ingrédient
-                      const createResponse = await fetch("/api/ingredients", {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                          Authorization: `Bearer ${localStorage.getItem(
-                            "token"
-                          )}`,
-                        },
-                        body: JSON.stringify({
-                          name: ingredient.name.trim(),
-                          category: determineIngredientCategory(
-                            ingredient.name.trim()
-                          ),
-                          imageUrl:
-                            ingredient.image ||
-                            "https://via.placeholder.com/200",
-                        }),
-                      });
+                      const createResponse = await fetch(
+                        `${API_BASE_URL}/api/ingredients`,
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem(
+                              "token"
+                            )}`,
+                          },
+                          body: JSON.stringify({
+                            name: ingredient.name.trim(),
+                            category: determineIngredientCategory(
+                              ingredient.name.trim()
+                            ),
+                            imageUrl:
+                              ingredient.image ||
+                              "https://via.placeholder.com/200",
+                          }),
+                        }
+                      );
 
                       if (!createResponse.ok) {
                         const errorData = await createResponse.json();
                         // Si l'ingrédient existe déjà, le chercher à nouveau
                         if (errorData.message === "Ingredient already exists") {
                           const retrySearch = await fetch(
-                            `/api/ingredients/search?q=${encodeURIComponent(
+                            `${API_BASE_URL}/api/ingredients/search?q=${encodeURIComponent(
                               ingredient.name.trim()
                             )}`,
                             {
@@ -488,20 +495,23 @@ function CreateRecipe2() {
       }
 
       // 3. Sauvegarder les étapes
-      const stepsResponse = await fetch(`/api/recipes/${recipeId}/steps`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          steps: steps.map((step) => ({
-            step: step.step,
-            description: step.description,
-            imageUrl: step.image ? "https://via.placeholder.com/200" : null,
-          })),
-        }),
-      });
+      const stepsResponse = await fetch(
+        `${API_BASE_URL}/api/recipes/${recipeId}/steps`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            steps: steps.map((step) => ({
+              step: step.step,
+              description: step.description,
+              imageUrl: step.image ? "https://via.placeholder.com/200" : null,
+            })),
+          }),
+        }
+      );
 
       if (!stepsResponse.ok) {
         const errorData = await stepsResponse.json();

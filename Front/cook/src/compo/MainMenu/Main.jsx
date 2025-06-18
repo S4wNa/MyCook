@@ -24,12 +24,13 @@ function Main() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     fetchRecipes();
   }, []);
 
   useEffect(() => {
-    // Check if there's a speciality parameter in the URL
     const specialityFromUrl = searchParams.get("speciality");
     if (specialityFromUrl) {
       setSelectedSpeciality(specialityFromUrl);
@@ -39,14 +40,12 @@ function Main() {
   useEffect(() => {
     let filtered = recipes;
 
-    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter((recipe) =>
         recipe.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Filter by speciality
     if (selectedSpeciality) {
       filtered = filtered.filter(
         (recipe) =>
@@ -60,14 +59,14 @@ function Main() {
   const fetchRecipes = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/recipes");
+
+      const response = await fetch(`${API_BASE_URL}/api/recipes`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch recipes");
       }
 
       const data = await response.json();
-      console.log("Fetched recipes:", data);
       setRecipes(data);
       setFilteredRecipes(data);
     } catch (error) {
@@ -89,13 +88,7 @@ function Main() {
   const handleSpecialityChange = (e) => {
     const newSpeciality = e.target.value;
     setSelectedSpeciality(newSpeciality);
-
-    // Update URL with the new speciality parameter
-    if (newSpeciality) {
-      setSearchParams({ speciality: newSpeciality });
-    } else {
-      setSearchParams({});
-    }
+    setSearchParams(newSpeciality ? { speciality: newSpeciality } : {});
   };
 
   if (isLoading) {

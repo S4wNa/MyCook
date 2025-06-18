@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import img12 from "../../assets/images/img12.jpg";
-import egg from "../../assets/images/oeuf.png";
-import { Ingredients } from "./Info";
 
 function Specific() {
   const { id } = useParams();
@@ -21,7 +18,8 @@ function Specific() {
   const fetchRecipeDetails = async () => {
     try {
       console.log("Fetching recipe details for ID:", id);
-      const response = await fetch(`/api/recipes/${id}`);
+      const apiUrl = `${import.meta.env.VITE_API_URL}/api/recipes/${id}`;
+      const response = await fetch(apiUrl);
 
       console.log("Response status:", response.status);
       if (!response.ok) {
@@ -58,7 +56,6 @@ function Specific() {
 
   return (
     <div className="flex min-h-screen opacity-80">
-      {/* Sidebar - Utilisation de flex-shrink-0 pour éviter le rétrécissement */}
       <aside className="hidden md:block w-64 lg:w-80 xl:w-96 flex-shrink-0 p-4 overflow-y-auto">
         <h2 className="text-xl font-bold mb-6">Ingredients:</h2>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -83,15 +80,11 @@ function Specific() {
         </div>
       </aside>
 
-      {/* Main content - Utilisation de flex-1 pour prendre l'espace restant */}
       <main className="flex-1 bg-[#FFFAF0] overflow-y-auto opacity-90">
-        {/* Hero section avec la recette */}
         <div className="container mx-auto p-6">
           <div className="rounded-lg p-6 mb-8">
             <div className="flex flex-col md:flex-row items-center gap-8">
-              {/* Mobile Ingredients Container */}
               <div className="w-full md:w-auto">
-                {/* Mobile Ingredients Button - Above the image */}
                 <button
                   onClick={() =>
                     setShowMobileIngredients(!showMobileIngredients)
@@ -101,9 +94,7 @@ function Specific() {
                   Ingredients
                 </button>
 
-                {/* Image Container */}
                 <div className="relative">
-                  {/* Mobile Ingredients Popup */}
                   {showMobileIngredients && (
                     <div className="md:hidden absolute inset-0 z-20 bg-[#FFFAF0] rounded-lg shadow-xl overflow-hidden">
                       <div className="p-4 h-full overflow-y-auto">
@@ -183,7 +174,6 @@ function Specific() {
             </div>
           </div>
 
-          {/* Steps section */}
           <div className="space-y-6">
             <h2 className="text-2xl font-bold mb-4">Steps</h2>
             {steps.map((step) => (
