@@ -11,7 +11,7 @@ function SignUp() {
     e.preventDefault();
     await signup(email, password);
     if (!error) {
-      navigate("/main");
+      navigate("/");
     }
   }
 
