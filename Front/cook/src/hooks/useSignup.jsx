@@ -7,8 +7,8 @@ export const useSignup = () => {
   const { dispatch } = useAuthContext();
 
   const signup = async (email, password) => {
-    setError(null);
     setIsLoading(true);
+    setError(null);
 
     try {
       const response = await fetch("/api/auth/signup", {
@@ -21,17 +21,24 @@ export const useSignup = () => {
 
       if (!response.ok) {
         setIsLoading(false);
-        setError(json.error || "Une erreur est survenue");
-        return;
+        setError(json.message);
+        return false;
       }
 
-      // Succès
-      localStorage.setItem("user", JSON.stringify(json));
-      dispatch({ type: "LOGIN", payload: json });
+      // Sauvegarder le token et l'utilisateur
+      localStorage.setItem("token", json.token);
+      localStorage.setItem("user", JSON.stringify({ email: json.email }));
+
+      // Mettre à jour le contexte d'authentification
+      dispatch({ type: "LOGIN", payload: { email: json.email } });
+
       setIsLoading(false);
+      return true;
     } catch (error) {
-      setError("email already used");
+      console.error("Signup error:", error);
       setIsLoading(false);
+      setError(error.message);
+      return false;
     }
   };
 

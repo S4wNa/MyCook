@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const createToken = (_id) => {
   return jwt.sign({ _id }, process.env.SECRET, { expiresIn: "3d" });
 };
+
 //login user
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -15,6 +16,7 @@ const loginUser = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
 // signin
 const SignUpUser = async (req, res) => {
   console.log("Signup request received:", req.body);

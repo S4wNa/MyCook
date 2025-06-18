@@ -1,53 +1,26 @@
-import img12 from "../../assets/images/img12.jpg";
-import img11 from "../../assets/images/img11.jpg";
-import img10 from "../../assets/images/img10.jpg";
-import img8 from "../../assets/images/img8.jpg";
-import img9 from "../../assets/images/img9.jpg";
 export const Items = [
   {
+    title: "Status",
+    spe: ["Published", "Draft", "Archived"],
+  },
+  {
+    title: "Speciality",
+    spe: ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],
+  },
+  {
     title: "Duration",
-    spe: ["0-1h", "1-2h", "2-3h", "3-4h"],
-  },
-  {
-    title: "Specialities",
-    spe: [
-      "italian",
-      "african",
-      "chinese",
-      "japansese",
-      "french",
-      "indian",
-      "turkish",
-    ],
-  },
-  {
-    title: "Person",
-    spe: ["0-1", "2", "3", "4 or more"],
+    spe: ["Quick (< 30min)", "Medium (30-60min)", "Long (> 60min)"],
   },
 ];
+
 export const Info = [
   {
-    time: ["time", "1h"],
-    pers: ["pers", "2"],
-    image: img10,
-    title: "Bolegnese Pasta",
+    title: "Recipe Name",
+    image: "path/to/image",
+    time: ["Duration", "30 min"],
+    pers: ["Serving", "4"],
+    status: "Published",
+    speciality: "Breakfast",
   },
-  {
-    time: ["time", "1h"],
-    pers: ["pers", "2"],
-    image: img11,
-    title: "Bolegnese Pasta",
-  },
-  {
-    time: ["time", "1h"],
-    pers: ["pers", "2"],
-    image: img12,
-    title: "Bolegnese Pasta",
-  },
-  {
-    time: ["time", "1h"],
-    pers: ["pers", "2"],
-    image: img8,
-    title: "Bolegnese Pasta",
-  },
+  // Les autres recettes seront ajoutées dynamiquement
 ];

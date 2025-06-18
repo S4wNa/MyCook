@@ -20,6 +20,7 @@ const Ingredients = new Schema(
         "Spices",
         "Grains",
         "Fruits",
+        "Proteins",
       ],
     },
   },

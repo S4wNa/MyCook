@@ -1,56 +1,42 @@
 const express = require("express");
 const router = express.Router();
-const {
-  handleGetAll,
-  handleCreate,
-  handleGetSpecific,
-  handlePublish,
-  handleAddIngredient,
-  handleGetIngredient,
-  handleCreateSteps,
-  handleGetSteps,
-  handleUpdateInfo,
-  handleUpdateSteps,
-  handleDeleteSpecific,
-} = require("../controllers/recipesController");
+const recipesController = require("../controllers/recipesController");
+const auth = require("../middlewares/authMiddleware");
 
 // ============ RECIPE ROUTES ============
 
-//    Get all published recipes
-router.get("/", handleGetAll);
+// Get all published recipes
+router.get("/", recipesController.handleGetAll);
 
-//    Create a new recipe
-router.post("/", handleCreate);
+// Get all recipes for the authenticated user
+router.get("/my-recipes", auth, recipesController.handleGetMyRecipes);
 
-//   Get recipe with all details
-router.get("/:id", handleGetSpecific);
+// Create a new recipe
+router.post("/", auth, recipesController.handleCreate);
 
-//    Publish a recipe
-router.put("/:id/publish", handlePublish);
+// Get recipe with all details
+router.get("/:id", recipesController.handleGetSpecific);
 
-// ============ INGREDIENT ROUTES (for recipes) ============
+// Update recipe info
+router.put("/:id", auth, recipesController.handleUpdateInfo);
 
-//   Add ingredients to a recipe
-router.post("/:recipeId/ingredients", handleAddIngredient);
+// Update recipe's steps
+router.post("/:recipeId/steps", auth, recipesController.handleCreateSteps);
 
-//  Get ingredients for a recipe
-router.get("/:recipeId/ingredients", handleGetIngredient);
+// Get recipe's steps
+router.get("/:recipeId/steps", recipesController.handleGetSteps);
 
-// ============ STEP ROUTES ============
+// Add ingredients to recipe
+router.post(
+  "/:recipeId/ingredients",
+  auth,
+  recipesController.handleAddIngredient
+);
 
-//   Add multiple steps at once
-router.post("/:recipeId/steps", handleCreateSteps);
+// Get recipe's ingredients
+router.get("/:recipeId/ingredients", recipesController.handleGetIngredient);
 
-//   Get all steps for a recipe
-router.get("/:recipeId/steps", handleGetSteps);
-
-//   Update recipe info
-router.put("/:id", handleUpdateInfo);
-
-// upadate recipe's steps
-router.put("/:recipeId/steps/:stepId", handleUpdateSteps);
-
-// Delete a recipe and all its relations
-router.delete("/:id", handleDeleteSpecific);
+// Delete a recipe
+router.delete("/:id", auth, recipesController.handleDelete);
 
 module.exports = router;

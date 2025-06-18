@@ -1,13 +1,13 @@
+import CreateRecipe2 from "../compo/Create/CreateRecipe2";
 import Navbar from "../compo/Navbar/Navbar";
-import CreateRecipe from "../compo/Create/CreateRecipe";
 
-function CreateStart() {
+function CreateRecipeComplete() {
   return (
     <div className="font-outfit min-h-screen flex flex-col bg-[#FFF3D8]">
       <Navbar />
-      <CreateRecipe />
+      <CreateRecipe2 />
     </div>
   );
 }
 
-export default CreateStart;
+export default CreateRecipeComplete;

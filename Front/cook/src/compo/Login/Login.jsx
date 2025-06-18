@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLogin } from "../../hooks/useLogin";
+import { useLogin } from "../../hooks/useLogin.jsx";
 import { useNavigate } from "react-router-dom";
 
 function Login() {
@@ -10,8 +10,8 @@ function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    await login(email, password);
-    if (!error) {
+    const success = await login(email, password);
+    if (success) {
       navigate("/home");
     }
   }
@@ -30,6 +30,7 @@ function Login() {
       onChange: (e) => setPassword(e.target.value),
     },
   ];
+
   return (
     <form className="container mx-auto " onSubmit={handleSubmit}>
       <div

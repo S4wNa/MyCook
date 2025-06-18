@@ -1,66 +1,41 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import defaultImage from "../../assets/images/img12.jpg";
 
-const SPECIALITIES = [
-  "Italian",
-  "French",
-  "Japanese",
-  "Indian",
-  "Mexican",
-  "Chinese",
-  "Thai",
-  "Turkish",
-  "Korean",
-];
-
-function Main() {
+function MyRecipe() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSpeciality, setSelectedSpeciality] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     fetchRecipes();
   }, []);
 
   useEffect(() => {
-    // Check if there's a speciality parameter in the URL
-    const specialityFromUrl = searchParams.get("speciality");
-    if (specialityFromUrl) {
-      setSelectedSpeciality(specialityFromUrl);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    let filtered = recipes;
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter((recipe) =>
-        recipe.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by speciality
-    if (selectedSpeciality) {
-      filtered = filtered.filter(
-        (recipe) =>
-          recipe.speciality.toLowerCase() === selectedSpeciality.toLowerCase()
-      );
-    }
-
+    const filtered = recipes.filter((recipe) =>
+      recipe.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     setFilteredRecipes(filtered);
-  }, [searchTerm, selectedSpeciality, recipes]);
+  }, [searchTerm, recipes]);
 
   const fetchRecipes = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/recipes");
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Please log in to view your recipes");
+      }
+
+      const response = await fetch("/api/recipes/my-recipes", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch recipes");
@@ -82,20 +57,42 @@ function Main() {
     navigate(`/specific/${recipeId}`);
   };
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
+  const handleEditClick = (e, recipeId) => {
+    e.stopPropagation();
+    navigate(`/edit/${recipeId}`);
   };
 
-  const handleSpecialityChange = (e) => {
-    const newSpeciality = e.target.value;
-    setSelectedSpeciality(newSpeciality);
+  const handleDeleteClick = async (e, recipeId) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this recipe?")) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`/api/recipes/${recipeId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-    // Update URL with the new speciality parameter
-    if (newSpeciality) {
-      setSearchParams({ speciality: newSpeciality });
-    } else {
-      setSearchParams({});
+        if (!response.ok) {
+          throw new Error("Failed to delete recipe");
+        }
+
+        setRecipes((prevRecipes) =>
+          prevRecipes.filter((recipe) => recipe._id !== recipeId)
+        );
+        setFilteredRecipes((prevRecipes) =>
+          prevRecipes.filter((recipe) => recipe._id !== recipeId)
+        );
+      } catch (error) {
+        console.error("Error deleting recipe:", error);
+        setError(error.message);
+      }
     }
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   if (isLoading) {
@@ -109,39 +106,25 @@ function Main() {
   return (
     <div className="flex-1 bg-[#FFFAF0] min-h-screen p-4">
       <div className="container mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">All Recipes</h1>
+        <h1 className="text-3xl font-bold text-center mb-8">My Recipes</h1>
 
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-full max-w-2xl mb-4">
+        <div className="flex justify-center items-center mb-8">
+          <div className="flex m-6">
             <input
               type="text"
               placeholder="Search recipes..."
               value={searchTerm}
               onChange={handleSearch}
-              className="w-full p-2 outline-none h-12 border-1 border-stone-600 rounded-lg"
+              className="p-2 outline-none w-60 h-10 border-1 border-stone-600 rounded-lg md:w-120"
             />
-          </div>
-          <div className="w-48">
-            <select
-              value={selectedSpeciality}
-              onChange={handleSpecialityChange}
-              className="w-full p-2 outline-none h-10 border-1 border-stone-600 rounded-lg bg-white text-sm"
-            >
-              <option value="">All Specialities</option>
-              {SPECIALITIES.map((speciality) => (
-                <option key={speciality} value={speciality}>
-                  {speciality}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
         {filteredRecipes.length === 0 ? (
           <div className="text-center text-gray-500">
-            {searchTerm || selectedSpeciality
-              ? "No recipes found matching your criteria."
-              : "No recipes available."}
+            {searchTerm
+              ? "No recipes found matching your search."
+              : "You haven't created any recipes yet."}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -176,6 +159,20 @@ function Main() {
                       </div>
                     </div>
                   </div>
+                  <div className="flex justify-center space-x-4 mt-2">
+                    <button
+                      onClick={(e) => handleEditClick(e, recipe._id)}
+                      className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200 opacity-30 hover:opacity-100 transition-opacity duration-200"
+                    >
+                      <FaEdit className="text-[#FF873C]" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteClick(e, recipe._id)}
+                      className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200 opacity-30 hover:opacity-100 transition-opacity duration-200"
+                    >
+                      <FaTrash className="text-red-500" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -186,4 +183,4 @@ function Main() {
   );
 }
 
-export default Main;
+export default MyRecipe;

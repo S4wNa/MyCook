@@ -1,4 +1,4 @@
-import React, { createContext, useReducer } from "react";
+import React, { createContext, useReducer, useEffect } from "react";
 
 export const AuthContext = createContext();
 
@@ -12,8 +12,21 @@ export const authReducer = (state, action) => {
       return state;
   }
 };
+
 export const AuthContextProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(authReducer, { user: null });
+  const [state, dispatch] = useReducer(authReducer, {
+    user: JSON.parse(localStorage.getItem("user")) || null,
+  });
+
+  useEffect(() => {
+    // Vérifier si l'utilisateur est connecté au chargement
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("token");
+
+    if (user && token) {
+      dispatch({ type: "LOGIN", payload: user });
+    }
+  }, []);
 
   console.log("AuthContext state:", state);
 

@@ -1,13 +1,13 @@
-import Recipe from "../compo/MyRecipe/Recipe";
+import MyRecipe from "../compo/MyRecipe/MyRecipe";
 import Navbar from "../compo/Navbar/Navbar";
 
-function MyRecipe() {
+function MyRecipePage() {
   return (
     <div className="font-outfit min-h-screen flex flex-col bg-[#FFF3D8] ">
       <Navbar />
-      <Recipe />
+      <MyRecipe />
     </div>
   );
 }
 
-export default MyRecipe;
+export default MyRecipePage;

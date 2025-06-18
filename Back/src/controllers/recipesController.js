@@ -1,38 +1,52 @@
 const Recipe = require("../models/RecipeModel");
-const RecipeIngredient = require("../models/RecipeIngredientsModel");
+const RecipeIngredient = require("../models/RecipeIngredientModel");
 const Step = require("../models/StepModel");
 
 const handleGetAll = async (req, res) => {
   try {
     const recipes = await Recipe.find({ status: "published" })
-      .select("name duration serving speciality mainUrl")
-      .sort({ createdAt: -1 })
-      .limit(20);
-
-    res.json(recipes);
+      .select("name duration serving speciality mainUrl userId")
+      .sort({ createdAt: -1 });
+    res.status(200).json(recipes);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+const handleGetMyRecipes = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const recipes = await Recipe.find({ userId })
+      .select("name duration serving speciality mainUrl userId status")
+      .sort({ createdAt: -1 });
+    res.status(200).json(recipes);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const handleCreate = async (req, res) => {
   try {
-    const { name, duration, serving, speciality } = req.body;
+    const userId = req.user.id;
+    const { name, duration, serving, speciality, mainUrl } = req.body;
 
     const recipe = new Recipe({
       name,
       duration,
       serving,
       speciality,
-      status: "draft",
-      mainUrl: "https://via.placeholder.com/400x300",
+      mainUrl,
+      userId,
+      status: "published",
     });
 
     const savedRecipe = await recipe.save();
     res.status(201).json(savedRecipe);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
+
 const handleGetSpecific = async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id);
@@ -42,13 +56,13 @@ const handleGetSpecific = async (req, res) => {
 
     const ingredients = await RecipeIngredient.find({
       recipeId: req.params.id,
-    }).populate("ingredientId");
+    }).populate("ingredientId", "name imageUrl");
 
     const steps = await Step.find({ recipeId: req.params.id }).sort({
       step: 1,
     });
 
-    res.json({
+    res.status(200).json({
       recipe,
       ingredients,
       steps,
@@ -57,160 +71,133 @@ const handleGetSpecific = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-const handlePublish = async (req, res) => {
+
+const handleUpdateInfo = async (req, res) => {
   try {
-    const recipe = await Recipe.findByIdAndUpdate(
-      req.params.id,
-      { status: "published" },
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const recipe = await Recipe.findOne({ _id: id, userId });
+    if (!recipe) {
+      return res
+        .status(404)
+        .json({ message: "Recipe not found or unauthorized" });
+    }
+
+    const { name, duration, serving, speciality, mainUrl } = req.body;
+    const updatedRecipe = await Recipe.findByIdAndUpdate(
+      id,
+      { name, duration, serving, speciality, mainUrl },
       { new: true }
     );
-
-    if (!recipe) {
-      return res.status(404).json({ message: "Recipe not found" });
-    }
-
-    res.json(recipe);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-const handleAddIngredient = async (req, res) => {
-  const { recipeId } = req.params;
-  const { ingredients } = req.body;
-
-  try {
-    const recipe = await Recipe.findById(recipeId);
-    if (!recipe) {
-      return res.status(404).json({ message: "Recipe not found" });
-    }
-
-    const savedIngredients = await RecipeIngredient.insertMany(
-      ingredients.map((ing) => ({
-        name: ing.name,
-        recipeId,
-        ingredientId: ing.ingredientId,
-        quantity: ing.quantity,
-        unit: ing.unit,
-        optional: ing.optional || false,
-      }))
-    );
-
-    res.status(201).json(savedIngredients);
-  } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        message: "Ingredient already added to this recipe",
-      });
-    }
-    res.status(500).json({ message: error.message });
-  }
-};
-const handleGetIngredient = async (req, res) => {
-  try {
-    const ingredients = await RecipeIngredient.find({
-      recipeId: req.params.recipeId,
-    }).populate("ingredientId");
-
-    res.json(ingredients);
+    res.status(200).json(updatedRecipe);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 const handleCreateSteps = async (req, res) => {
-  const { recipeId } = req.params;
-  const { steps } = req.body;
-
   try {
-    const recipe = await Recipe.findById(recipeId);
+    const { recipeId } = req.params;
+    const userId = req.user.id;
+
+    const recipe = await Recipe.findOne({ _id: recipeId, userId });
     if (!recipe) {
-      return res.status(404).json({ message: "Recipe not found" });
+      return res
+        .status(404)
+        .json({ message: "Recipe not found or unauthorized" });
     }
 
-    const stepsToAdd = Array.isArray(steps) ? steps : [req.body];
+    const { steps } = req.body;
 
-    const savedSteps = await Step.insertMany(
-      stepsToAdd.map((step) => ({
+    // Supprimer les anciennes étapes
+    await Step.deleteMany({ recipeId });
+
+    // Créer les nouvelles étapes
+    const createdSteps = await Step.insertMany(
+      steps.map((step) => ({
+        ...step,
         recipeId,
-        step: step.step,
-        description: step.description,
-        imageUrl: step.imageUrl || null,
       }))
     );
 
-    res.status(201).json(savedSteps);
+    res.status(200).json(createdSteps);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
+
 const handleGetSteps = async (req, res) => {
   try {
     const steps = await Step.find({ recipeId: req.params.recipeId }).sort({
       step: 1,
     });
-
-    res.json(steps);
+    res.status(200).json(steps);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-const handleUpdateInfo = async (req, res) => {
+
+const handleAddIngredient = async (req, res) => {
   try {
-    const { name, duration, serving, speciality } = req.body;
+    const { recipeId } = req.params;
+    const userId = req.user.id;
 
-    const updatedRecipe = await Recipe.findByIdAndUpdate(
-      req.params.id,
-      { name, duration, serving, speciality },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedRecipe) {
-      return res.status(404).json({ message: "Recipe not found" });
-    }
-
-    res.json(updatedRecipe);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-const handleUpdateSteps = async (req, res) => {
-  try {
-    const { description, imageUrl, step } = req.body;
-
-    const updateFields = {};
-    if (description !== undefined) updateFields.description = description;
-    if (imageUrl !== undefined) updateFields.imageUrl = imageUrl;
-    if (step !== undefined) updateFields.step = step;
-
-    const updatedStep = await Step.findOneAndUpdate(
-      {
-        _id: req.params.stepId,
-        recipeId: req.params.recipeId,
-      },
-      updateFields,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedStep) {
-      return res.status(404).json({ message: "Step not found" });
-    }
-
-    res.json(updatedStep);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-const handleDeleteSpecific = async (req, res) => {
-  try {
-    const recipe = await Recipe.findById(req.params.id);
+    const recipe = await Recipe.findOne({ _id: recipeId, userId });
     if (!recipe) {
-      return res.status(404).json({ message: "Recipe not found" });
+      return res
+        .status(404)
+        .json({ message: "Recipe not found or unauthorized" });
     }
 
-    await RecipeIngredient.deleteMany({ recipeId: req.params.id });
-    await Step.deleteMany({ recipeId: req.params.id });
-    await recipe.deleteOne();
+    const { ingredients } = req.body;
 
-    res.json({ message: "Recipe deleted successfully" });
+    // Supprimer les anciens ingrédients
+    await RecipeIngredient.deleteMany({ recipeId });
+
+    // Ajouter les nouveaux ingrédients
+    const createdIngredients = await RecipeIngredient.insertMany(
+      ingredients.map((ingredient) => ({
+        ...ingredient,
+        recipeId,
+      }))
+    );
+
+    res.status(200).json(createdIngredients);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const handleGetIngredient = async (req, res) => {
+  try {
+    const ingredients = await RecipeIngredient.find({
+      recipeId: req.params.recipeId,
+    }).populate("ingredientId", "name imageUrl");
+    res.status(200).json(ingredients);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const handleDelete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const recipe = await Recipe.findOne({ _id: id, userId });
+    if (!recipe) {
+      return res
+        .status(404)
+        .json({ message: "Recipe not found or unauthorized" });
+    }
+
+    // Supprimer les ingrédients et les étapes associés
+    await RecipeIngredient.deleteMany({ recipeId: id });
+    await Step.deleteMany({ recipeId: id });
+    await Recipe.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Recipe deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -218,14 +205,13 @@ const handleDeleteSpecific = async (req, res) => {
 
 module.exports = {
   handleGetAll,
+  handleGetMyRecipes,
   handleCreate,
   handleGetSpecific,
-  handlePublish,
-  handleAddIngredient,
-  handleGetIngredient,
+  handleUpdateInfo,
   handleCreateSteps,
   handleGetSteps,
-  handleUpdateInfo,
-  handleUpdateSteps,
-  handleDeleteSpecific,
+  handleAddIngredient,
+  handleGetIngredient,
+  handleDelete,
 };

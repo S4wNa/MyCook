@@ -7,7 +7,8 @@ import MainMenu from "./pages/MainMenu";
 import MyRecipe from "./pages/MyRecipe";
 import SpecificRecipe from "./pages/SpecificRecipe";
 import CreateRecipe from "./pages/CreateRecipe";
-import CreateIngredient from "./pages/CreateIngredient";
+import CreateRecipeComplete from "./pages/CreateRecipeComplete";
+import EditRecipe from "./compo/Edit/EditRecipe";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import "./index.css";
 import { Routes, Route } from "react-router-dom";
@@ -20,14 +21,7 @@ function App() {
       <Route path="/signup" element={<Sign />} />
       <Route path="/about" element={<About />} />
       <Route path="/speciality" element={<Speciality />} />
-      <Route
-        path="/main"
-        element={
-          <ProtectedRoute>
-            <MainMenu />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/main" element={<MainMenu />} />
       <Route
         path="/myrecipe"
         element={
@@ -36,19 +30,12 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/specific"
-        element={
-          <ProtectedRoute>
-            <SpecificRecipe />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/specific/:id" element={<SpecificRecipe />} />
       <Route
         path="/ingredients"
         element={
           <ProtectedRoute>
-            <CreateIngredient />
+            <CreateRecipe />
           </ProtectedRoute>
         }
       />
@@ -56,7 +43,23 @@ function App() {
         path="/recipe"
         element={
           <ProtectedRoute>
+            <CreateRecipeComplete />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-recipe"
+        element={
+          <ProtectedRoute>
             <CreateRecipe />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/edit/:id"
+        element={
+          <ProtectedRoute>
+            <EditRecipe />
           </ProtectedRoute>
         }
       />

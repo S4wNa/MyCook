@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { specialties } from "./img";
 
 function Spe() {
+  const navigate = useNavigate();
   const [rotation, setRotation] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const quantity = specialties.length;
@@ -15,7 +17,7 @@ function Spe() {
   };
 
   const handleSpecialtyClick = (specialty) => {
-    window.location.href = "/about";
+    navigate(`/main?speciality=${encodeURIComponent(specialty.title)}`);
   };
 
   const getSliderDimensions = () => {
